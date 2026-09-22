@@ -20,7 +20,7 @@ metadata:
   title: AppFlowy
   description: Open-source alternative to Notion. Self-hosted sync server for AppFlowy desktop, mobile and web.
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
-  version: '1.2.1'
+  version: '1.2.2'
   categories:
   - Productivity_v112
   - AI
@@ -80,6 +80,11 @@ spec:
   upgradeDescription: |
     Initial Olares release of AppFlowy Cloud, adapted from the official
     AppFlowy-Cloud docker-compose stack.
+    v1.2.2: Fix admin console login loop — browser origin was rejected by the admin
+    frontend's Next.js server-actions origin check (upstream issue #1575). The console
+    now whitelists the public entrance origin; login at /console over VPN/LAN:
+    https://<your-entrance>/console (admin account = install-time GOTRUE admin).
+
   developer: AppFlowy
   website: https://appflowy.io/
   sourceCode: https://github.com/AppFlowy-IO/AppFlowy-Cloud

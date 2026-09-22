@@ -13,7 +13,7 @@ deploys the full **AppFlowy Cloud** self-hosting stack on Olares, adapted from t
 https://appflowy.com/docs/Step-by-step-Self-Hosting-Guide---From-Zero-to-Production).
 
 - Chart folder: `appflowy/` (name must stay `appflowy`, matching `metadata.name` and `Chart.yaml name`)
-- Current chart version: see `appflowy/Chart.yaml` (`version` must equal `metadata.version` in `OlaresManifest.yaml`)
+- Current chart version: see `appflowy/Chart.yaml` (1.2.2 as of 2026-09-22) (`version` must equal `metadata.version` in `OlaresManifest.yaml`)
 - Upstream app version: `spec.versionName` (currently AppFlowy Cloud `0.18.9`)
 - Submitter / owner: **abidals**
 - Repo: https://github.com/abidals/AppFlowy-Olares (source in `main`; packaged charts
@@ -225,6 +225,9 @@ Username/namespace: `appflowy-my` namespace; ApplicationManager name `appflowy-m
       `https://<domain>/gotrue/callback` (per upstream AUTHENTICATION.md).
 - [ ] The entrance URL (`9a094675.my.cgtale.com`) is the native-client sync URL; document it
       for users on the app's market page after promotion.
+- [x] Admin console login loop fixed in 1.2.2 (v1.2.2 chart): the Next.js admin frontend
+      validates browser Origin for server-actions (upstream issue #1575) — chart now sets
+      `APPFLOWY_ALLOWED_ORIGINS=https://<entrance>` (image auto-appends the internal API URL).
 - [ ] Consider `options.LLMGatewaySupported: true` once Olares exposes a documented in-cluster
       Router data-plane URL for app workloads.
 - [ ] Backup: appData is JuiceFS-backed and snapshotted by Olares; MnIO/PG/Redis data sits there.

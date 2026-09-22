@@ -1,3 +1,4 @@
+{{- $d := include "appflowy.publicDomain" . -}}
 {{- $p := (index .Values.workloads "admin-frontend") -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -29,6 +30,10 @@ spec:
           value: "http://gotrue:{{ .Values.ports.gotrue }}"
         - name: APPFLOWY_BASE_URL
           value: "http://appflowy-cloud:{{ .Values.ports.cloud }}"
+        # Browser origin for Next.js server-actions (login) — see upstream issue #1575.
+        # The image auto-appends APPFLOWY_BASE_URL, so both origins are allowed.
+        - name: APPFLOWY_ALLOWED_ORIGINS
+          value: "https://{{ $d }}"
         resources:
           requests:
             cpu: {{ $p.requests.cpu }}

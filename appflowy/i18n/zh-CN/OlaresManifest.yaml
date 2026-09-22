@@ -20,7 +20,7 @@ metadata:
   title: AppFlowy
   description: 开源 Notion 替代品。AppFlowy 桌面端、移动端与网页端的自托管同步服务器。
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
-  version: '1.2.1'
+  version: '1.2.2'
   categories:
   - Productivity_v112
   - AI
