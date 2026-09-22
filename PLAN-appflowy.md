@@ -18,9 +18,14 @@ https://appflowy.com/docs/Step-by-step-Self-Hosting-Guide---From-Zero-to-Product
 - Submitter / owner: **abidals**
 - Repo: https://github.com/abidals/AppFlowy-Olares (source in `main`; packaged charts
   published **only** as GitHub Release assets — `*.tgz` is gitignored, never committed).
-  Release automation: push a tag `v<version>` and the workflow lints, packages and attaches
-  `appflowy-<version>.tgz` to the release. Admin email for the my@cgtale.com instance:
-  `abidal@unbe.at` (changed 2026-09-22 by re-running the installer envs).
+  Release automation: `./scripts/release.sh <version>` (lint → package → commit → tag →
+  GitHub Release with the `.tgz`). An equivalent Actions workflow sits UNTRACKED at
+  `.github/workflows/chart.yml` — pushing it needs the PAT to gain the `workflows` scope
+  (fine-grained PAT → Repository permissions → Workflows → Read and write), after which
+  `git add .github && git commit && git push` enables tag-pushed releases.
+  Admin email for the my@cgtale.com instance: `abidal@unbe.at` (changed 2026-09-22 by
+  clean reinstall; GOTRUE creates the admin account at every start with the install envs —
+  changing email later while data exists = re-run install or create the user via /console).
 - Tested on: Olares 1.12.6, amd64 node, `my@cgtale.com` (owner), deployed 2026-09-21
 
 **Status at time of writing:** `running` on my@cgtale.com, public entrance

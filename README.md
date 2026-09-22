@@ -64,16 +64,22 @@ PLAN-appflowy.md     architecture/upgrade playbook — READ BEFORE EDITING the c
 
 Packaged charts live **only in GitHub Releases** (one release per chart version, asset
 `appflowy-<version>.tgz`); `main` carries the latest source only and `*.tgz` is gitignored.
-To ship an update:
+
+To ship an update, bump the version fields (`appflowy/Chart.yaml` `version`,
+`OlaresManifest.yaml` + i18n `metadata.version`, and `spec.versionName` if the upstream app
+changed) and run:
 
 ```bash
-# bump appflowy/Chart.yaml version + OlaresManifest metadata.version (+ spec.versionName if needed),
-# then:
-git commit -am "release 1.2.x"
-git tag v1.2.x && git push origin main v1.2.x
+./scripts/release.sh 1.2.x
 ```
 
-The `v*` tag triggers the workflow: lint → package → publish the Release with the `.tgz` asset.
+It lints, packages, commits the source, pushes tag `v1.2.x` and publishes the GitHub Release
+with the `.tgz` asset.
+
+A CI variant exists at `.github/workflows/chart.yml` (tag push → lint → package → Release);
+pushing it requires the GitHub token to also include the `workflows` scope
+(fine-grained PAT: Repository permissions → Workflows → Read and write). Until then it stays
+out of the pushed tree.
 
 ## Notes & limits
 
