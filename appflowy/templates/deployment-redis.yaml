@@ -1,0 +1,64 @@
+{{- $p := (index .Values.workloads "redis") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: redis
+spec:
+  replicas: {{ .Values.workloads.redis.replicaCount }}
+  selector:
+    matchLabels:
+      app: redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: "{{ .Values.images.redis }}"
+        imagePullPolicy: IfNotPresent
+        args:
+        - redis-server
+        - --dir
+        - /data
+        - --appendonly
+        - "yes"
+        - --maxmemory
+        - {{ .Values.redisMaxMemory | quote }}
+        - --maxmemory-policy
+        - noeviction
+        ports:
+        - containerPort: {{ .Values.ports.redis }}
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 6
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          failureThreshold: 10
+      volumes:
+      - name: app-data
+        hostPath:
+          path: "{{ .Values.userspace.appData }}/redis"
+          type: DirectoryOrCreate

@@ -1,0 +1,140 @@
+# Chart values for the AppFlowy Olares chart.
+# Do not edit images/versions here unless you know what you are doing —
+# see PLAN-appflowy.md at the repository root.
+
+images:
+  nginx: docker.io/beclab/aboveos-nginx:1.27.0
+  cloud: docker.io/appflowyinc/appflowy_cloud:0.18.9
+  gotrue: docker.io/appflowyinc/gotrue:0.18.9
+  admin: docker.io/appflowyinc/admin_frontend:0.18.1
+  ai: docker.io/appflowyinc/appflowy_ai:0.17.7
+  worker: docker.io/appflowyinc/appflowy_worker:0.18.9
+  search: docker.io/appflowyinc/appflowy_search:0.18.9
+  web: docker.io/appflowyinc/appflowy_web:0.18.4
+  minio: docker.io/beclab/minio-minio:RELEASE.2025-07-23T15-54-02Z
+  redis: docker.io/beclab/aboveos-redis:7
+  init: docker.io/beclab/aboveos-busybox:1.37.0
+  pg: docker.io/beclab/pgvector-pgvector:0.8.0-pg15
+
+# Upstream service defaults (see AppFlowy-Cloud deploy.env)
+ports:
+  nginx: 80
+  cloud: 8000
+  gotrue: 9999
+  admin: 3000
+  ai: 5001
+  worker: 4001
+  search: 4002
+  web: 80
+  minioApi: 9000
+  minioConsole: 9001
+  redis: 6379
+
+# JWT lifetime for issued AppFlowy sessions, in seconds (default 7 days)
+jwtExpSeconds: "604800"
+
+# Redis maxmemory (e.g. 512mb, 1gb) and eviction policy
+redisMaxMemory: 512mb
+
+# PostgreSQL connections for appflowy-cloud
+cloudDbMaxConnections: "40"
+
+workloads:
+  appflowy-pg:
+    replicaCount: 1
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  appflowy:
+    replicaCount: 1
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "250m"
+      memory: 512Mi
+
+  appflowy-cloud:
+    replicaCount: 1
+    requests:
+      cpu: 150m
+      memory: 512Mi
+    limits:
+      cpu: "1500m"
+      memory: 2Gi
+
+  gotrue:
+    replicaCount: 1
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 1Gi
+
+  admin-frontend:
+    replicaCount: 1
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "250m"
+      memory: 512Mi
+
+  appflowy-ai:
+    replicaCount: 1
+    requests:
+      cpu: 150m
+      memory: 512Mi
+    limits:
+      cpu: "1500m"
+      memory: 2Gi
+
+  appflowy-worker:
+    replicaCount: 1
+    requests:
+      cpu: 80m
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 1Gi
+
+  appflowy-search:
+    replicaCount: 1
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1000m"
+      memory: 2Gi
+
+  appflowy-web:
+    replicaCount: 1
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "750m"
+      memory: 1536Mi
+
+  minio:
+    replicaCount: 1
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "500m"
+      memory: 1Gi
+
+  redis:
+    replicaCount: 1
+    requests:
+      cpu: 30m
+      memory: 128Mi
+    limits:
+      cpu: "250m"
+      memory: 1Gi
+

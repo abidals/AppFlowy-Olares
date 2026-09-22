@@ -1,0 +1,86 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appflowy-pg
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: appflowy-pg
+spec:
+  replicas: {{ (index .Values.workloads "appflowy-pg").replicaCount }}
+  selector:
+    matchLabels:
+      app: appflowy-pg
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: appflowy-pg
+    spec:
+      containers:
+      - name: pg
+        image: "{{ .Values.images.pg }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: appflowy
+        - name: POSTGRES_DB
+          value: appflowy
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: scram-sha-256
+        - name: POSTGRES_INITDB_ARGS
+          value: "--auth=scram-sha-256"
+        - name: PGDATA
+          value: /data/pgdata4
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: APPFLOWY_PG_PASSWORD
+        command:
+        - docker-entrypoint.sh
+        - postgres
+        - -c
+        - ssl=off
+        - -c
+        - listen_addresses=*
+        volumeMounts:
+        - name: pg-data
+          mountPath: /data
+        resources:
+          requests:
+            cpu: {{ (index .Values.workloads "appflowy-pg").requests.cpu }}
+            memory: {{ (index .Values.workloads "appflowy-pg").requests.memory }}
+          limits:
+            cpu: {{ (index .Values.workloads "appflowy-pg").limits.cpu }}
+            memory: {{ (index .Values.workloads "appflowy-pg").limits.memory }}
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - appflowy
+            - -d
+            - appflowy
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 18
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - appflowy
+            - -d
+            - appflowy
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          failureThreshold: 10
+      volumes:
+      - name: pg-data
+        hostPath:
+          path: "{{ .Values.userspace.appData }}/pg"
+          type: DirectoryOrCreate

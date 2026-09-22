@@ -1,0 +1,50 @@
+{{- $p := (index .Values.workloads "admin-frontend") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-frontend
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: admin-frontend
+spec:
+  replicas: {{ (index .Values.workloads "admin-frontend").replicaCount }}
+  selector:
+    matchLabels:
+      app: admin-frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: admin-frontend
+    spec:
+      containers:
+      - name: admin
+        image: "{{ .Values.images.admin }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.ports.admin }}
+        env:
+        - name: APPFLOWY_GOTRUE_BASE_URL
+          value: "http://gotrue:{{ .Values.ports.gotrue }}"
+        - name: APPFLOWY_BASE_URL
+          value: "http://appflowy-cloud:{{ .Values.ports.cloud }}"
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.admin }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 12
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.admin }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          failureThreshold: 10

@@ -1,0 +1,81 @@
+{{- $p := (index .Values.workloads "appflowy-worker") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appflowy-worker
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: appflowy-worker
+spec:
+  replicas: {{ (index .Values.workloads "appflowy-worker").replicaCount }}
+  selector:
+    matchLabels:
+      app: appflowy-worker
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: appflowy-worker
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+      - name: worker
+        image: "{{ .Values.images.worker }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.ports.worker }}
+        env:
+        - name: RUST_LOG
+          value: info
+        - name: APPFLOWY_ENVIRONMENT
+          value: production
+        - name: APPFLOWY_WORKER_REDIS_URL
+          value: "redis://redis:{{ .Values.ports.redis }}"
+        - name: APPFLOWY_WORKER_DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: APPFLOWY_WORKER_DATABASE_NAME
+        - name: APPFLOWY_WORKER_IMPORT_TICK_INTERVAL
+          value: "30"
+        - name: APPFLOWY_S3_USE_MINIO
+          value: "true"
+        - name: APPFLOWY_S3_MINIO_URL
+          value: "http://minio:{{ .Values.ports.minioApi }}"
+        - name: APPFLOWY_S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: APPFLOWY_S3_ACCESS_KEY
+        - name: APPFLOWY_S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: APPFLOWY_S3_SECRET_KEY
+        - name: APPFLOWY_S3_BUCKET
+          value: appflowy
+        envFrom:
+        - secretRef:
+            name: appflowy-config
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.worker }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 12
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.worker }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 10

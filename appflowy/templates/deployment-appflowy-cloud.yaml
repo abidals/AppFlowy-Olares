@@ -1,0 +1,108 @@
+{{- $d := include "appflowy.publicDomain" . -}}
+{{- $p := (index .Values.workloads "appflowy-cloud") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appflowy-cloud
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: appflowy-cloud
+spec:
+  replicas: {{ (index .Values.workloads "appflowy-cloud").replicaCount }}
+  selector:
+    matchLabels:
+      app: appflowy-cloud
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: appflowy-cloud
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+      - name: cloud
+        image: "{{ .Values.images.cloud }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.ports.cloud }}
+        envFrom:
+        - secretRef:
+            name: appflowy-config
+        env:
+        - name: RUST_LOG
+          value: info
+        - name: APPFLOWY_ENVIRONMENT
+          value: production
+        - name: APPFLOWY_REDIS_URI
+          value: "redis://redis:{{ .Values.ports.redis }}"
+        - name: APPFLOWY_GOTRUE_BASE_URL
+          value: "http://gotrue:{{ .Values.ports.gotrue }}"
+        - name: APPFLOWY_GOTRUE_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: GOTRUE_JWT_SECRET
+        - name: APPFLOWY_S3_CREATE_BUCKET
+          value: "true"
+        - name: APPFLOWY_S3_USE_MINIO
+          value: "true"
+        - name: APPFLOWY_S3_MINIO_URL
+          value: "http://minio:{{ .Values.ports.minioApi }}"
+        - name: APPFLOWY_S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: APPFLOWY_S3_ACCESS_KEY
+        - name: APPFLOWY_S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: APPFLOWY_S3_SECRET_KEY
+        - name: APPFLOWY_S3_BUCKET
+          value: appflowy
+        - name: APPFLOWY_S3_PRESIGNED_URL_ENDPOINT
+          value: "https://{{ $d }}/minio-api"
+        - name: APPFLOWY_ACCESS_CONTROL
+          value: "true"
+        - name: APPFLOWY_DATABASE_MAX_CONNECTIONS
+          value: "{{ .Values.cloudDbMaxConnections }}"
+        - name: AI_SERVER_HOST
+          value: appflowy-ai
+        - name: AI_SERVER_PORT
+          value: "{{ .Values.ports.ai }}"
+        - name: AI_ENABLED
+          value: "true"
+        - name: APPFLOWY_WEB_URL
+          value: "https://{{ $d }}"
+        - name: APPFLOWY_BASE_URL
+          value: "https://{{ $d }}"
+        - name: APPFLOWY_WEBSOCKET_BASE_URL
+          value: "wss://{{ $d }}/ws/v2"
+        - name: APPFLOWY_SEARCH_SERVICE_URL
+          value: "http://appflowy-search:{{ .Values.ports.search }}"
+        - name: APPFLOWY_WEBSOCKET_MAILBOX_SIZE
+          value: "6000"
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: {{ .Values.ports.cloud }}
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 12
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: {{ .Values.ports.cloud }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 10

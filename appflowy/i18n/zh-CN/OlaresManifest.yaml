@@ -1,0 +1,178 @@
+olaresManifest.version: '0.12.0'
+olaresManifest.type: app
+apiVersion: 'v3'
+
+workloadReplicas:
+  appflowy-pg: 1
+  appflowy: 1
+  appflowy-cloud: 1
+  gotrue: 1
+  admin-frontend: 1
+  appflowy-ai: 1
+  appflowy-worker: 1
+  appflowy-search: 1
+  appflowy-web: 1
+  minio: 1
+  redis: 1
+
+metadata:
+  name: appflowy
+  title: AppFlowy
+  description: 开源 Notion 替代品。AppFlowy 桌面端、移动端与网页端的自托管同步服务器。
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
+  version: '1.2.1'
+  categories:
+  - Productivity_v112
+  - AI
+  tags:
+  - notes
+  - knowledge-base
+  - workspace
+  - collaboration
+  - notion-alternative
+
+entrances:
+- name: appflowy
+  host: appflowy
+  port: 80
+  title: AppFlowy
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
+  authLevel: public
+  openMethod: default
+
+permission:
+  appData: true
+
+spec:
+  versionName: '0.18.9'
+  featuredImage: https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/projects.f2c7abf3.webp
+  promoteImage:
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/projects.f2c7abf3.webp
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/project-tracking.94a5c1eb.webp
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/ai-notes.ad9a79f4.webp
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/knowledge-base.deb9d108.webp
+  fullDescription: |
+    AppFlowy 是开源的 Notion 替代品。本应用可在你的 Olares 上部署完整的
+    AppFlowy Cloud 服务器，作为 AppFlowy 桌面端 / 移动端应用的私有同步中心，
+    并提供 AppFlowy 网页界面——全部通过你的 Olares 公网地址访问。
+
+    **包含内容**
+    - 私有实时多人文档协作 / 同步服务器
+    - 浏览器直接访问 AppFlowy Web 界面
+    - 桌面与移动原生客户端通过你自己的 Olares 地址同步
+    - 内置 MinIO 对象存储，无需外部 S3
+    - 由 Olares 托管的 PostgreSQL，支持接入本地 AI 网关
+    - 管理控制台（仅限局域网访问）：/console
+    - 全文与语义搜索、附件上传、已发布（公开）文档
+
+    **AI（可选）**
+    不配置 AI 时，除 AI 对话 / 摘要外的一切功能均可用。安装时填入
+    OpenAI 兼容的 API Key 可启用服务端 AI 对话与文档摘要；填入自定义的
+    OpenAI 兼容 Base URL（例如 Olares Router 本地 AI 网关）可让 AI 流量
+    全部保留在本机。
+
+    **为 Olares 定制**
+    - 公开入口 + Olares 管理 TLS，任意设备原生客户端均可远程同步
+    - 管理控制台与 MinIO 控制台仅对局域网 / VPN 开放
+    - 数据存储在 Olares 用户空间（Data 目录）中并参与备份
+    - 安装时自动生成凭据并存放于 Kubernetes Secret
+
+  upgradeDescription: |
+    AppFlowy Cloud 首个 Olares 版本，改编自官方 AppFlowy-Cloud docker-compose 部署栈。
+  developer: AppFlowy
+  website: https://appflowy.io/
+  sourceCode: https://github.com/AppFlowy-IO/AppFlowy-Cloud
+  submitter: abidals
+  locale:
+  - en-US
+  - zh-CN
+  doc: https://docs.appflowy.com/docs/step-by-step-self-hosting-guide-from-zero-to-production
+  license:
+  - text: AGPL-3.0
+    url: https://github.com/AppFlowy-IO/AppFlowy-Cloud/blob/main/SELF_HOST_LICENSE_AGREEMENT.md
+  supportArch:
+  - amd64
+  - arm64
+  accelerator:
+  - mode: cpu
+    requiredCpu: '2'
+    limitedCpu: '10'
+    requiredMemory: 4Gi
+    limitedMemory: 18Gi
+    requiredDisk: 1Gi
+    limitedDisk: 100Gi
+
+options:
+  apiTimeout: 0
+  allowedOutboundPorts:
+  - 465
+  - 587
+  dependencies:
+  - name: olares
+    type: system
+    version: '>=1.12.6-0'
+
+envs:
+- envName: GOTRUE_ADMIN_EMAIL
+  type: email
+  required: true
+  description: 管理控制台管理员邮箱（首次启动时创建）
+- envName: GOTRUE_ADMIN_PASSWORD
+  type: password
+  required: true
+  regex: '^.{8,}$'
+  description: 管理控制台管理员密码（至少 8 位）
+- envName: GOTRUE_DISABLE_SIGNUP
+  type: bool
+  default: 'true'
+  editable: true
+  applyOnChange: true
+  description: "true = 仅管理员创建账号（推荐）。false = 任何拿到公开地址的人都可以注册"
+- envName: AI_OPENAI_API_KEY
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: OpenAI API Key（或本地 AI 网关密钥）。留空则禁用 AI 功能
+- envName: OPENAI_BASE_URL
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: 可选的 OpenAI 兼容 Base URL，例如 Olares Router 本地 AI 网关
+- envName: DEFAULT_AI_MODEL
+  type: string
+  default: gpt-4.1-mini
+  editable: true
+  applyOnChange: true
+  description: AI 服务使用的对话/摘要模型名称（须存在于所配置的 AI 服务中）
+- envName: SMTP_HOST
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: SMTP 服务器地址（用于邮箱确认、邀请与找回密码）。留空则注册自动确认
+- envName: SMTP_PORT
+  type: string
+  default: '465'
+  editable: true
+  applyOnChange: true
+  description: SMTP 端口（465 为隐式 TLS）
+- envName: SMTP_USER
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: SMTP 用户名（发件账号）
+- envName: SMTP_PASS
+  type: password
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: SMTP 密码
+- envName: SMTP_ADMIN_EMAIL
+  type: email
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: 用于对外发信的发件邮箱

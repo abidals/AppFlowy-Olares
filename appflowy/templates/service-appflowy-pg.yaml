@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: appflowy-pg
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  type: ClusterIP
+  selector:
+    app: appflowy-pg
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: pg

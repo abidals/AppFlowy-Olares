@@ -1,0 +1,60 @@
+name: appflowy-chart
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    name: Lint & package chart
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install olares-cli
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/beclab/olares-cli/main/install.sh | bash -s -- install
+          echo "$HOME/.olares/bin" >> "$GITHUB_PATH"
+      - name: Lint
+        run: olares-cli chart lint appflowy
+      - name: Package (artifact for review only — not committed to main)
+        run: olares-cli chart package appflowy
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appflowy-chart
+          path: appflowy-*.tgz
+
+  release:
+    name: Release chart package
+    if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install olares-cli
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/beclab/olares-cli/main/install.sh | bash -s -- install
+          echo "$HOME/.olares/bin" >> "$GITHUB_PATH"
+      - name: Verify tag matches chart version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          grep -q "^version: ${VERSION}$" appflowy/Chart.yaml || {
+            echo "Tag ${GITHUB_REF_NAME} does not match Chart.yaml version (${VERSION})"; exit 1; }
+          grep -q "version: '${VERSION}'" appflowy/OlaresManifest.yaml || {
+            echo "Tag ${GITHUB_REF_NAME} does not match OlaresManifest.yaml metadata.version"; exit 1; }
+      - name: Lint & package
+        run: |
+          olares-cli chart lint appflowy
+          olares-cli chart package appflowy
+      - name: Publish release with .tgz asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" appflowy-*.tgz \
+            --title "AppFlowy Olares chart $GITHUB_REF_NAME" \
+            --generate-notes

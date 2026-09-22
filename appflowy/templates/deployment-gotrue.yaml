@@ -1,0 +1,110 @@
+{{- $d := include "appflowy.publicDomain" . -}}
+{{- $p := (index .Values.workloads "gotrue") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gotrue
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: gotrue
+spec:
+  replicas: {{ .Values.workloads.gotrue.replicaCount }}
+  selector:
+    matchLabels:
+      app: gotrue
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gotrue
+    spec:
+      # Official image runs as uid 1000 (supabase user).
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+      - name: gotrue
+        image: "{{ .Values.images.gotrue }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.ports.gotrue }}
+        env:
+        - name: GOTRUE_SITE_URL
+          value: appflowy-flutter://
+        - name: GOTRUE_URI_ALLOW_LIST
+          value: "**"
+        - name: GOTRUE_JWT_EXP
+          value: "{{ .Values.jwtExpSeconds }}"
+        - name: GOTRUE_JWT_ADMIN_GROUP_NAME
+          value: supabase_admin
+        - name: GOTRUE_DB_DRIVER
+          value: postgres
+        - name: API_EXTERNAL_URL
+          value: "https://{{ $d }}/gotrue"
+        - name: PORT
+          value: "{{ .Values.ports.gotrue }}"
+        {{ $oe := .Values.olaresEnv | default dict }}
+        {{ $smtp := index $oe "SMTP_HOST" }}
+        - name: GOTRUE_MAILER_AUTOCONFIRM
+          value: {{ if $smtp }}"false"{{ else }}"true"{{ end }}
+        - name: GOTRUE_DISABLE_SIGNUP
+          value: {{ index $oe "GOTRUE_DISABLE_SIGNUP" | default true | quote }}
+        - name: GOTRUE_RATE_LIMIT_EMAIL_SENT
+          value: "100"
+        - name: GOTRUE_MAILER_URLPATHS_CONFIRMATION
+          value: /gotrue/verify
+        - name: GOTRUE_MAILER_URLPATHS_INVITE
+          value: /gotrue/verify
+        - name: GOTRUE_MAILER_URLPATHS_RECOVERY
+          value: /gotrue/verify
+        - name: GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE
+          value: /gotrue/verify
+        - name: GOTRUE_SMTP_MAX_FREQUENCY
+          value: 1ns
+        {{- if $smtp }}
+        - name: GOTRUE_MAILER_TEMPLATES_MAGIC_LINK
+          value: ""
+        {{- end }}
+        - name: GOTRUE_EXTERNAL_GOOGLE_ENABLED
+          value: "false"
+        - name: GOTRUE_EXTERNAL_GITHUB_ENABLED
+          value: "false"
+        - name: GOTRUE_EXTERNAL_DISCORD_ENABLED
+          value: "false"
+        - name: GOTRUE_SAML_ENABLED
+          value: "false"
+        - name: GOTRUE_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: GOTRUE_DATABASE_URL
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: appflowy-config
+              key: GOTRUE_DATABASE_URL
+        envFrom:
+        - secretRef:
+            name: appflowy-config
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.ports.gotrue }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 12
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.ports.gotrue }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 10

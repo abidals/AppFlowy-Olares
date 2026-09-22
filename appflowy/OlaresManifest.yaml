@@ -1,0 +1,179 @@
+olaresManifest.version: '0.12.0'
+olaresManifest.type: app
+apiVersion: 'v3'
+
+workloadReplicas:
+  appflowy-pg: 1
+  appflowy: 1
+  appflowy-cloud: 1
+  gotrue: 1
+  admin-frontend: 1
+  appflowy-ai: 1
+  appflowy-worker: 1
+  appflowy-search: 1
+  appflowy-web: 1
+  minio: 1
+  redis: 1
+
+metadata:
+  name: appflowy
+  title: AppFlowy
+  description: Open-source alternative to Notion. Self-hosted sync server for AppFlowy desktop, mobile and web.
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
+  version: '1.2.1'
+  categories:
+  - Productivity_v112
+  - AI
+  tags:
+  - notes
+  - knowledge-base
+  - workspace
+  - collaboration
+  - notion-alternative
+
+entrances:
+- name: appflowy
+  host: appflowy
+  port: 80
+  title: AppFlowy
+  icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
+  authLevel: public
+  openMethod: default
+
+permission:
+  appData: true
+
+spec:
+  versionName: '0.18.9'
+  featuredImage: https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/projects.f2c7abf3.webp
+  promoteImage:
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/projects.f2c7abf3.webp
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/project-tracking.94a5c1eb.webp
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/ai-notes.ad9a79f4.webp
+  - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/knowledge-base.deb9d108.webp
+  fullDescription: |
+    AppFlowy is an open-source alternative to Notion. This chart deploys the full
+    AppFlowy Cloud server on your Olares, giving you a private sync hub for the
+    AppFlowy desktop and mobile apps, plus the AppFlowy Web UI — all reachable
+    over the internet through your Olares public URL.
+
+    **What you get**
+    - Private collaboration and doc-sync server (real-time, multi-user)
+    - AppFlowy Web UI in the browser, from any device
+    - Native desktop/mobile clients sync via your own Olares address
+    - Local file/object storage (dedicated MinIO), no external S3 needed
+    - Olares-managed PostgreSQL and optional local-AI gateway integration
+    - Admin console for user management at /console (LAN only)
+    - Full-text + semantic search, file uploads, published (shared) docs
+
+    **AI (optional)**
+    Leave AI empty and everything except AI chat/summarize works. Provide an
+    OpenAI-compatible key in the install form to enable server-side AI chat and
+    document summaries; set a custom OpenAI-compatible base URL (for example an
+    Olares Router / local-AI gateway) to keep AI traffic on your own machine.
+
+    **Made for Olares**
+    - Public entrance with Olares-managed TLS for native-app sync from anywhere
+    - Admin console and MinIO console restricted to your local/VPN networks
+    - Data stored in your Olares userspace (Data directory), backed up
+    - Credentials generated per install and stored in Kubernetes Secrets
+  upgradeDescription: |
+    Initial Olares release of AppFlowy Cloud, adapted from the official
+    AppFlowy-Cloud docker-compose stack.
+  developer: AppFlowy
+  website: https://appflowy.io/
+  sourceCode: https://github.com/AppFlowy-IO/AppFlowy-Cloud
+  submitter: abidals
+  locale:
+  - en-US
+  - zh-CN
+  doc: https://docs.appflowy.com/docs/step-by-step-self-hosting-guide-from-zero-to-production
+  license:
+  - text: AGPL-3.0
+    url: https://github.com/AppFlowy-IO/AppFlowy-Cloud/blob/main/SELF_HOST_LICENSE_AGREEMENT.md
+  supportArch:
+  - amd64
+  - arm64
+  accelerator:
+  - mode: cpu
+    requiredCpu: '2'
+    limitedCpu: '10'
+    requiredMemory: 4Gi
+    limitedMemory: 18Gi
+    requiredDisk: 1Gi
+    limitedDisk: 100Gi
+
+options:
+  apiTimeout: 0
+  allowedOutboundPorts:
+  - 465
+  - 587
+  dependencies:
+  - name: olares
+    type: system
+    version: '>=1.12.6-0'
+
+envs:
+- envName: GOTRUE_ADMIN_EMAIL
+  type: email
+  required: true
+  description: Admin email for the AppFlowy admin console (created on first start)
+- envName: GOTRUE_ADMIN_PASSWORD
+  type: password
+  required: true
+  regex: '^.{8,}$'
+  description: Admin console password (min 8 chars)
+- envName: GOTRUE_DISABLE_SIGNUP
+  type: bool
+  default: 'true'
+  editable: true
+  applyOnChange: true
+  description: "true = only invited/admin-created accounts (recommended). false = anyone with the public URL can sign up"
+- envName: AI_OPENAI_API_KEY
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: OpenAI API key (or local-AI gateway key). Leave empty to disable AI features
+- envName: OPENAI_BASE_URL
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: "Optional OpenAI-compatible base URL for AI, e.g. your Olares Router local-AI gateway"
+- envName: DEFAULT_AI_MODEL
+  type: string
+  default: gpt-4.1-mini
+  editable: true
+  applyOnChange: true
+  description: Chat/summary model name used by the AI service (must exist on the configured AI provider)
+- envName: SMTP_HOST
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: SMTP host for email confirmation, invites and password resets. Leave empty to auto-confirm sign ups
+- envName: SMTP_PORT
+  type: string
+  default: '465'
+  editable: true
+  applyOnChange: true
+  description: SMTP port (465 = implicit TLS)
+- envName: SMTP_USER
+  type: string
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: SMTP username (sender account)
+- envName: SMTP_PASS
+  type: password
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: SMTP password
+- envName: SMTP_ADMIN_EMAIL
+  type: email
+  default: ''
+  editable: true
+  applyOnChange: true
+  description: Sender email address used for outgoing mail

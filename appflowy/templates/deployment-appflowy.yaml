@@ -1,0 +1,57 @@
+{{- $p := (index .Values.workloads "appflowy") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appflowy
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: appflowy
+spec:
+  replicas: {{ .Values.workloads.appflowy.replicaCount }}
+  selector:
+    matchLabels:
+      app: appflowy
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: appflowy
+    spec:
+      containers:
+      - name: nginx
+        image: "{{ .Values.images.nginx }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.ports.nginx }}
+        - containerPort: 8080
+        volumeMounts:
+        - name: nginx-conf
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.ports.nginx }}
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.ports.nginx }}
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          failureThreshold: 10
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: appflowy-nginx-conf

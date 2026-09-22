@@ -1,0 +1,55 @@
+{{- $d := include "appflowy.publicDomain" . -}}
+{{- $p := (index .Values.workloads "appflowy-web") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appflowy-web
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app: appflowy-web
+spec:
+  replicas: {{ (index .Values.workloads "appflowy-web").replicaCount }}
+  selector:
+    matchLabels:
+      app: appflowy-web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: appflowy-web
+    spec:
+      containers:
+      - name: web
+        image: "{{ .Values.images.web }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.ports.web }}
+        env:
+        - name: APPFLOWY_BASE_URL
+          value: "https://{{ $d }}"
+        - name: APPFLOWY_GOTRUE_BASE_URL
+          value: "https://{{ $d }}/gotrue"
+        - name: APPFLOWY_WS_BASE_URL
+          value: "wss://{{ $d }}/ws/v2"
+        resources:
+          requests:
+            cpu: {{ $p.requests.cpu }}
+            memory: {{ $p.requests.memory }}
+          limits:
+            cpu: {{ $p.limits.cpu }}
+            memory: {{ $p.limits.memory }}
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.ports.web }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 18
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.ports.web }}
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          failureThreshold: 10
