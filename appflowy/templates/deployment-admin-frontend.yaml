@@ -26,12 +26,17 @@ spec:
         ports:
         - containerPort: {{ .Values.ports.admin }}
         env:
-        - name: APPFLOWY_GOTRUE_BASE_URL
-          value: "http://gotrue:{{ .Values.ports.gotrue }}"
+        # The admin console is a Next.js app whose login must work behind the
+        # Olares edge + router chain. Server actions break in that setup
+        # (client/server action-id mismatch in the 0.18.1 image + forwarded
+        # host checks), so we run the documented fallback mode: browser-side
+        # login against the PUBLIC gotrue/cloud URLs.
+        - name: APPFLOWY_ADMIN_DISABLE_SERVER_ACTIONS
+          value: "true"
         - name: APPFLOWY_BASE_URL
-          value: "http://appflowy-cloud:{{ .Values.ports.cloud }}"
-        # Browser origin for Next.js server-actions (login) — see upstream issue #1575.
-        # The image auto-appends APPFLOWY_BASE_URL, so both origins are allowed.
+          value: "https://{{ $d }}"
+        - name: APPFLOWY_GOTRUE_BASE_URL
+          value: "https://{{ $d }}/gotrue"
         - name: APPFLOWY_ALLOWED_ORIGINS
           value: "https://{{ $d }}"
         resources:

@@ -20,7 +20,7 @@ metadata:
   title: AppFlowy
   description: Open-source alternative to Notion. Self-hosted sync server for AppFlowy desktop, mobile and web.
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
-  version: '1.2.2'
+  version: '1.2.3'
   categories:
   - Productivity_v112
   - AI

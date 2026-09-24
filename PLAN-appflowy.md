@@ -228,6 +228,17 @@ Username/namespace: `appflowy-my` namespace; ApplicationManager name `appflowy-m
 - [x] Admin console login loop fixed in 1.2.2 (v1.2.2 chart): the Next.js admin frontend
       validates browser Origin for server-actions (upstream issue #1575) — chart now sets
       `APPFLOWY_ALLOWED_ORIGINS=https://<entrance>` (image auto-appends the internal API URL).
+- [x] v1.2.3: 1.2.2 was NOT sufficient. The 0.18.1 image ships a genuine
+      **client/server action-id mismatch** (client chunks embed `40984b58…` for loginAction,
+      the server-reference-manifest registers `408f52ca…`), so server-action logins fail
+      regardless of origin headers ('Server action not found' / 'Connection closed'
+      digests). Final fix = the image's documented fallback mode:
+      `APPFLOWY_ADMIN_DISABLE_SERVER_ACTIONS=true` + `APPFLOWY_BASE_URL` /
+      `APPFLOWY_GOTRUE_BASE_URL` set to the PUBLIC entrance URLs so the browser performs
+      auth itself (`POST /gotrue/token` from the browser, admin APIs via the same origin).
+      The router now also passes the edge's `x-forwarded-host`/`x-forwarded-proto` through
+      untouched on `/console`. If a newer admin_frontend image appears (>0.18.1), test
+      server-actions again — the fallback env can then be dropped.
 - [ ] Consider `options.LLMGatewaySupported: true` once Olares exposes a documented in-cluster
       Router data-plane URL for app workloads.
 - [ ] Backup: appData is JuiceFS-backed and snapshotted by Olares; MnIO/PG/Redis data sits there.
