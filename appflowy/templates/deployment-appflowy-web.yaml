@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: "{{ .Values.images.web }}"
+        image: "docker.io/appflowyinc/appflowy_web:0.18.5"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: {{ .Values.ports.web }}

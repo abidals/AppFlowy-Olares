@@ -4,13 +4,13 @@
 
 images:
   nginx: docker.io/beclab/aboveos-nginx:1.27.0
-  cloud: docker.io/appflowyinc/appflowy_cloud:0.18.9
-  gotrue: docker.io/appflowyinc/gotrue:0.18.9
-  admin: docker.io/appflowyinc/admin_frontend:0.18.1
+  cloud: docker.io/appflowyinc/appflowy_cloud:0.18.11
+  gotrue: docker.io/appflowyinc/gotrue:0.18.11
+  admin: docker.io/appflowyinc/admin_frontend:0.18.2
   ai: docker.io/appflowyinc/appflowy_ai:0.17.7
-  worker: docker.io/appflowyinc/appflowy_worker:0.18.9
+  worker: docker.io/appflowyinc/appflowy_worker:0.18.11
   search: docker.io/appflowyinc/appflowy_search:0.18.9
-  web: docker.io/appflowyinc/appflowy_web:0.18.4
+  web: docker.io/appflowyinc/appflowy_web:0.18.5
   minio: docker.io/beclab/minio-minio:RELEASE.2025-07-23T15-54-02Z
   redis: docker.io/beclab/aboveos-redis:7
   init: docker.io/beclab/aboveos-busybox:1.37.0

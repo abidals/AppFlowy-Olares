@@ -2,7 +2,7 @@ apiVersion: v2
 name: appflowy
 description: AppFlowy Cloud self-hosted server for Olares — sync hub for AppFlowy desktop/mobile/web clients.
 type: application
-version: 1.2.3
+version: 1.2.6
 appVersion: "0.18.9"
 home: https://appflowy.io
 sources:

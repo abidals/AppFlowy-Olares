@@ -63,9 +63,6 @@ spec:
             secretKeyRef:
               name: appflowy-config
               key: APPFLOWY_S3_SECRET_KEY
-        envFrom:
-        - secretRef:
-            name: appflowy-config
         {{- if (index $oe "AI_OPENAI_API_KEY") }}
         - name: OPENAI_API_KEY
           valueFrom:
@@ -77,6 +74,9 @@ spec:
         - name: OPENAI_BASE_URL
           value: {{ index $oe "OPENAI_BASE_URL" | quote }}
         {{- end }}
+        envFrom:
+        - secretRef:
+            name: appflowy-config
         resources:
           requests:
             cpu: {{ $p.requests.cpu }}

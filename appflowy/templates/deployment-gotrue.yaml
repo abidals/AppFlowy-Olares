@@ -25,7 +25,7 @@ spec:
         runAsGroup: 1000
       containers:
       - name: gotrue
-        image: "{{ .Values.images.gotrue }}"
+        image: "docker.io/appflowyinc/gotrue:0.18.11"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: {{ .Values.ports.gotrue }}

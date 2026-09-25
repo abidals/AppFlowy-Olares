@@ -20,7 +20,7 @@ metadata:
   title: AppFlowy
   description: Open-source alternative to Notion. Self-hosted sync server for AppFlowy desktop, mobile and web.
   icon: https://cdn.jsdelivr.net/gh/selfhst/icons/png/appflowy.png
-  version: '1.2.3'
+  version: '1.2.6'
   categories:
   - Productivity_v112
   - AI
@@ -44,7 +44,7 @@ permission:
   appData: true
 
 spec:
-  versionName: '0.18.9'
+  versionName: '0.18.11'
   featuredImage: https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/projects.f2c7abf3.webp
   promoteImage:
   - https://cdn.jsdelivr.net/gh/abidals/AppFlowy-Olares@main/assets/projects.f2c7abf3.webp
@@ -80,6 +80,8 @@ spec:
   upgradeDescription: |
     Initial Olares release of AppFlowy Cloud, adapted from the official
     AppFlowy-Cloud docker-compose stack.
+    v1.2.6: images pinned in templates (Olares merges install-time values on upgrades, so values.yaml image bumps were ignored)
+    v1.2.4: Server 0.18.11 (client needs >=0.18.10) — cloud/gotrue/worker updated, web 0.18.5, admin 0.18.2; fixed the envFrom bug that broke applying AI environment variables.
   developer: AppFlowy
   website: https://appflowy.io/
   sourceCode: https://github.com/AppFlowy-IO/AppFlowy-Cloud

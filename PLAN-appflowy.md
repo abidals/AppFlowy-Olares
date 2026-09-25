@@ -14,7 +14,7 @@ https://appflowy.com/docs/Step-by-step-Self-Hosting-Guide---From-Zero-to-Product
 
 - Chart folder: `appflowy/` (name must stay `appflowy`, matching `metadata.name` and `Chart.yaml name`)
 - Current chart version: see `appflowy/Chart.yaml` (1.2.2 as of 2026-09-22) (`version` must equal `metadata.version` in `OlaresManifest.yaml`)
-- Upstream app version: `spec.versionName` (currently AppFlowy Cloud `0.18.9`)
+- Upstream app version: `spec.versionName` (currently AppFlowy Cloud `0.18.11`; 2 users incl. admin + 1 active workspace)
 - Submitter / owner: **abidals**
 - Repo: https://github.com/abidals/AppFlowy-Olares (source in `main`; packaged charts
   published **only** as GitHub Release assets — `*.tgz` is gitignored, never committed).
@@ -81,6 +81,14 @@ deliberately — do not "fix" without re-testing each point:
 
 **Version bump discipline:** every chart/manifest/image change bumps
 `Chart.yaml version` == `OlaresManifest.yaml metadata.version` (patch increments are fine).
+
+**UPGRADE GOTCHA (learned 1.2.4→1.2.6):** Olares merges the **values.yaml snapshot stored at
+install time** over the chart's own values on later upgrades — so image-tag changes made only
+in `values.yaml` are silently IGNORED on `market upgrade` (the chart metadata version updates,
+but the deployment specs stay stale). Env-var changes flow (they're templates + olaresEnv), and
+template changes apply. Therefore: **pin app images directly in the deployment templates**
+(current approach), keep `values.yaml` as documentation; or do a full uninstall/reinstall when
+a values.yaml-only change is needed (destructive — beware user data).
 
 ## 4. Storage & identity
 

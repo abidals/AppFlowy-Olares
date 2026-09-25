@@ -24,7 +24,7 @@ spec:
         runAsGroup: 1000
       containers:
       - name: cloud
-        image: "{{ .Values.images.cloud }}"
+        image: "docker.io/appflowyinc/appflowy_cloud:0.18.11"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: {{ .Values.ports.cloud }}
